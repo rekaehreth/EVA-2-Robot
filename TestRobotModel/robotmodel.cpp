@@ -1,11 +1,5 @@
 #include "robotmodel.h"
 
-RobotModel::RobotModel(QObject *parent) : QObject(parent)
-{
-    timer = new QTimer();
-    connect( timer, SIGNAL(timeout()), this, SLOT(on_timer_timeOut() ) );
-}
-
 QString RobotModel::getPaneType(int x, int y)
 {
     switch ( field[ _size * x + y ] ) {
@@ -120,26 +114,10 @@ void RobotModel::startNewGame(int size)
     } while( isGameOver() );
     gameActive = true;
     timeInSec = 0;
-    timer->start( 1000 );
-}
-
-void RobotModel::pauseOrResumeGame()
-{
-    gameActive = !gameActive;
-    if ( gameActive ) timer->stop();
-    else timer->start( 1000 );
 }
 
 bool RobotModel::isGameOver()
 {
     if ( field[ _size * ( _size / 2 ) + _size / 2 ] == 3 ) return true;
     else return false;
-}
-
-void RobotModel::on_timer_timeOut()
-{
-    ++timeInSec;
-    moveRobot();
-    refreshTime();
-    timer->start( 1000 );
 }

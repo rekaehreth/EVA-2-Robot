@@ -5,8 +5,8 @@ void RobotWidget::generateTable()
     if(fields.size() != 0){
        deleteTable();
     }
-    for ( int i = 0; i < viewModel->getSize(); ++i ) {
-        for ( int j = 0; j < viewModel->getSize(); ++j ) {
+    for ( int i = 0; i < model->getSize(); ++i ) {
+        for ( int j = 0; j < model->getSize(); ++j ) {
             QPushButton* button = new QPushButton();
             button->setFixedSize(30, 30);
             fields.push_back( button );
@@ -30,7 +30,7 @@ void RobotWidget::deleteTable()
 RobotWidget::RobotWidget(QWidget *parent)
     : QWidget(parent)
 {
-    viewModel = new RobotModel();
+    model = new RobotModel();
     playingArea = new QGridLayout();
     pauseLayout = new QHBoxLayout();
     sizeLayout = new QHBoxLayout();
@@ -62,8 +62,9 @@ RobotWidget::RobotWidget(QWidget *parent)
     connect( largeGameButton, SIGNAL( clicked() ), this, SLOT( on_largeButton_clicked() ) );
     connect( pauseButton, SIGNAL( clicked() ), this, SLOT( on_pauseButton_clicked() ) );
 
-    connect( viewModel, SIGNAL( refreshTable() ), this, SLOT( on_refreshTable() ) );
-    connect( viewModel, SIGNAL( refreshTime() ), this, SLOT( on_refresTimer() ) );
+    connect( model, SIGNAL( refreshTable() ), this, SLOT( on_refreshTable() ) );
+    connect( model, SIGNAL( refreshTime() ), this, SLOT( on_refresTimer() ) );
+    connect( model, SIGNAL( gameOver() ), this, SLOT(on_gameOver()));
 
     on_smallButton_clicked();
 }
@@ -74,26 +75,26 @@ RobotWidget::~RobotWidget()
 
 void RobotWidget::on_smallButton_clicked()
 {
-    viewModel->startNewGame(7);
+    model->startNewGame(7);
     generateTable();
 }
 
 void RobotWidget::on_mediumButton_clicked()
 {
-    viewModel->startNewGame(11);
+    model->startNewGame(11);
     generateTable();
 }
 
 void RobotWidget::on_largeButton_clicked()
 {
-    viewModel->startNewGame(15);
+    model->startNewGame(15);
     generateTable();
 }
 
 void RobotWidget::on_pauseButton_clicked()
 {
-    viewModel->pauseOrResumeGame();
-    if ( viewModel->isActive() ) {
+    model->pauseOrResumeGame();
+    if ( model->isActive() ) {
         pauseButton->setText( "Pause" );
         foreach( QPushButton* button, fields )
         {
@@ -112,7 +113,7 @@ void RobotWidget::on_pauseButton_clicked()
 void RobotWidget::on_fieldButtonClicked()
 {
     QPushButton* senderButton = qobject_cast<QPushButton*>(sender());
-    if ( !( viewModel->placeWall( playingArea->indexOf( senderButton ) ) ) ) {
+    if ( !( model->placeWall( playingArea->indexOf( senderButton ) ) ) ) {
         QMessageBox* errorBox = new QMessageBox();
         errorBox->setText("Can't place wall on selected field, there's already something on it.");
     }
@@ -120,20 +121,24 @@ void RobotWidget::on_fieldButtonClicked()
 
 void RobotWidget::on_refreshTable()
 {
-    for ( int i = 0; i < viewModel->getSize(); ++i ) {
-        for ( int j = 0; j < viewModel->getSize(); ++j ) {
+    for ( int i = 0; i < model->getSize(); ++i ) {
+        for ( int j = 0; j < model->getSize(); ++j ) {
             if ( fields.size() != 0 )
-                fields[ i * viewModel->getSize() + j ]->setText( viewModel->getPaneType( i, j ) );
+                fields[ i * model->getSize() + j ]->setText( model->getPaneType( i, j ) );
         }
-    }
-    if ( viewModel->isGameOver() ) {
-        QMessageBox* endGameBox = new QMessageBox();
-        endGameBox->setText("Congratulation, you've won the game.\nYour time is: " + viewModel->getElapsedTime() );
     }
 }
 
+void RobotWidget::on_gameOver()
+{
+    QMessageBox* endGameBox = new QMessageBox();
+    endGameBox->setText("Congratulation, you've won the game.\nYour time is: " + model->getElapsedTime() );
+    endGameBox->show();
+}
+
+
 void RobotWidget::on_refresTimer()
 {
-    timerLabel->setText("Elapsed time: " + viewModel->getElapsedTime() );
+    timerLabel->setText("Elapsed time: " + model->getElapsedTime() );
 }
 
